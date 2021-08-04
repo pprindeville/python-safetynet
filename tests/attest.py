@@ -12,7 +12,7 @@ safetyNetWebAuthnSample = {
 }
 
 def main() -> None:
-    attestation = safetynet.verifySafetyNetAttestation(safetyNetWebAuthnSample)
+    attestation = safetynet.verifySafetyNetAttestation(safetyNetWebAuthnSample['response'])
     print(safetynet.AttestationStatement.__repr__(attestation))
 
 if __name__ == "__main__":

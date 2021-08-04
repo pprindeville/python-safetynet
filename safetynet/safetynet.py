@@ -146,7 +146,7 @@ def sha256(s: bytes) -> bytes:
     return digest.finalize()
 
 def verifySafetyNetAttestation(webAuthnResponse: dict) -> bool:
-    attestationBuffer = base64url.decode(webAuthnResponse['response']['attestationObject'])
+    attestationBuffer = base64url.decode(webAuthnResponse['attestationObject'])
     attestationStruct = cbor2.loads(attestationBuffer)
 
     if attestationStruct['fmt'] != 'android-safetynet':
@@ -164,7 +164,7 @@ def verifySafetyNetAttestation(webAuthnResponse: dict) -> bool:
 
     ## Verify payload
 
-    clientDataHashBuf = sha256(base64url.decode(webAuthnResponse['response']['clientDataJSON']))
+    clientDataHashBuf = sha256(base64url.decode(webAuthnResponse['clientDataJSON']))
 
     nonceBase = attestationStruct['authData'] + clientDataHashBuf
     nonceBuffer = sha256(nonceBase)
