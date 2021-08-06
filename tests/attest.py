@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+import os, sys
+
+sys.path.insert(1, os.path.dirname(sys.path[0]))
+
 import safetynet
 
 safetyNetWebAuthnSample = {
