@@ -9,6 +9,7 @@ import base64
 import cbor2
 import json
 
+import datetime
 import time
 
 from cryptography import x509
@@ -111,7 +112,50 @@ class AttestationStatement:
 
         return (now - self.timestamp < float(maxAge))
 
+##
+## Simple-minded certificate chain validation
+##
+## We need a better version to be bundled in x509 but alas, it's mired
+## in handwringing and bikeshedding.
+##
+## We need CRL and/or OCSP verification that intermediate certs haven't
+## been revoked.
+##
 def validateCertificatePath(certificates: List[x509.Certificate]) -> bool:
+    if len(certificates) != len(set(certificates)):
+        raise RuntimeError('Duplicates detected in certificate chain')
+
+    now = datetime.datetime.now()
+
+    for i in range(len(certificates)):
+        subjectCert = certificates[i]
+
+        # certificate validity window outside of current time
+        if subjectCert.not_valid_before > now or \
+           subjectCert.not_valid_after < now:
+            return False
+
+        if i == len(certificates) - 1:
+            ## root CA's are self-signed, so compare to itself
+            issuerCert = certificates[i]
+        else:
+            issuerCert = certificates[i + 1]
+
+        # check for subject/issuer DN equality
+        if subjectCert.issuer != issuerCert.subject:
+            return False
+
+        # verify signature using issuer's public key
+        try:
+            issuerCert.public_key().verify(
+                subjectCert.signature,
+                subjectCert.tbs_certificate_bytes,
+                padding.PKCS1v15(),
+                subjectCert.signature_hash_algorithm,
+            )
+        except InvalidSignature:
+            return False
+
     return True
 
 ##
