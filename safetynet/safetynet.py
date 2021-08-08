@@ -189,8 +189,8 @@ def sha256(s: bytes) -> bytes:
     digest.update(s)
     return digest.finalize()
 
-def verifySafetyNetAttestation(webAuthnResponse: dict) -> bool:
-    attestationBuffer = base64url.decode(webAuthnResponse['attestationObject'])
+def verifySafetyNetAttestation(response: bytes) -> bool:
+    attestationBuffer = base64url.decode(response)
     attestationStruct = cbor2.loads(attestationBuffer)
 
     if attestationStruct['fmt'] != 'android-safetynet':
@@ -205,17 +205,6 @@ def verifySafetyNetAttestation(webAuthnResponse: dict) -> bool:
     HEADER = json.loads(base64url.decode(jwsParts[0]))
     PAYLOAD = json.loads(base64url.decode(jwsParts[1]))
     SIGNATURE = jwsParts[2]
-
-    ## Verify payload
-
-    clientDataHashBuf = sha256(base64url.decode(webAuthnResponse['clientDataJSON']))
-
-    nonceBase = attestationStruct['authData'] + clientDataHashBuf
-    nonceBuffer = sha256(nonceBase)
-    expectedNonce = base64.b64encode(nonceBuffer)
-
-    if PAYLOAD['nonce'].encode() != expectedNonce:
-        raise RuntimeError('Nonce mismatch in payload')
 
     ## Verify header
 
