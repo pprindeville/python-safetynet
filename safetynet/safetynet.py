@@ -189,14 +189,7 @@ def sha256(s: bytes) -> bytes:
     digest.update(s)
     return digest.finalize()
 
-def verifySafetyNetAttestation(response: bytes) -> bool:
-    attestationBuffer = base64url.decode(response)
-    attestationStruct = cbor2.loads(attestationBuffer)
-
-    if attestationStruct['fmt'] != 'android-safetynet':
-        raise ValueError('Attestion using wrong format')
-
-    jwsString = attestationStruct['attStmt']['response']
+def verifySafetyNetAttestation(jwsString: bytes) -> bool:
     jwsParts = jwsString.split(b'.')
 
     if len(jwsParts) != 3:
